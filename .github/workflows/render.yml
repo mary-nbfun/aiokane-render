@@ -31,6 +31,11 @@ jobs:
         with:
           node-version: 24
 
+      - name: Allow Chrome sandbox on Ubuntu 24.04 (AppArmor userns restriction)
+        # ubuntu-24.04 runners restrict unprivileged user namespaces, which
+        # makes headless Chrome exit with "No usable sandbox" (SIGTRAP).
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
       - name: Install ffmpeg and Japanese fonts
         run: |
           sudo apt-get update
