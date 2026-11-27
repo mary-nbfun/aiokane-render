@@ -1,0 +1,7 @@
+out/
+.gm-cache/
+node_modules/
+snapshots/
+artifacts/
+*.log
+REPORT.md
