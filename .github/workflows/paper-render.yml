@@ -21,6 +21,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y fonts-noto-cjk
+      - name: Install vendored BIZ UDPGothic (main font; Noto stays as fallback)
+        run: |
+          mkdir -p ~/.fonts
+          cp paper/fonts/BIZUDPGothic-Regular.ttf paper/fonts/BIZUDPGothic-Bold.ttf ~/.fonts/
+          fc-cache -f
+          fc-match "BIZ UDPGothic"
       - name: Install Playwright + Chromium
         run: |
           pip install playwright
@@ -30,10 +36,13 @@ jobs:
       - name: One still of the title segment (t=3.2s)
         run: |
           time python paper/tools/render_ci.py still title 3.2 paper/frames/check.png
+      - name: One still of the boardfull segment (t=4.5s, font check on board nodes)
+        run: |
+          time python paper/tools/render_ci.py still boardfull 4.5 paper/frames/check-boardfull.png
       - uses: actions/upload-artifact@v4
         with:
           name: paper-still
-          path: paper/frames/check.png
+          path: paper/frames/check*.png
           retention-days: 7
 
   render:
@@ -47,8 +56,8 @@ jobs:
         include:
           - seg: title
             dur: '6.2'
-          - seg: board
-            dur: '4.6'
+          - seg: boardfull
+            dur: '5.0'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -60,6 +69,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y fonts-noto-cjk
+      - name: Install vendored BIZ UDPGothic (main font; Noto stays as fallback)
+        run: |
+          mkdir -p ~/.fonts
+          cp paper/fonts/BIZUDPGothic-Regular.ttf paper/fonts/BIZUDPGothic-Bold.ttf ~/.fonts/
+          fc-cache -f
+          fc-match "BIZ UDPGothic"
       - name: Install Playwright + Chromium
         run: |
           pip install playwright

@@ -28,7 +28,7 @@ const C = {
   card: '#F8F2E2', ink: '#2E2A26', green: '#1F4D3A', greenMid: '#2E6B4F', greenSoft: '#7FA88F',
   gold: '#C29B3C', goldPale: '#E7CC7E', goldDeep: '#9A7A2A', track: '#E2D5B8', muted: '#6B6156',
 };
-const FONT = '"Noto Sans CJK JP", "Hiragino Sans", sans-serif';
+const FONT = '"BIZ UDPGothic", "Noto Sans CJK JP", "Hiragino Sans", sans-serif';
 const D = P2.draw2;
 const text = (g, ink, str, x, y, size, color, weight = 700, align = 'center') => {
   g.save(); g.translate(x, y); g.scale(1, -1);
@@ -46,13 +46,15 @@ const VIEWS = {
   chapter: { pitch: 44, dist: 37, target: [0, 2.2, -2] },
   coin: { pitch: 50, dist: 16, target: [0, 1.5, 0] },
   endcard: { pitch: 44, dist: 40, target: [0, 2.0, -1] },
-  ground: { pitch: 85, dist: 22, target: [-6.4, 0.3, -0.55] },
-  cardtex: { pitch: 85, dist: 7.5, target: [0, 0.2, -1.0] },
+  groundtop: { pitch: 88, dist: 34, target: [0, 0, -6] },
+  coinflat: { pitch: 86, dist: 10.5, target: [0, 0.4, 0] },
+  cardtex: { pitch: 86, dist: 20, target: [0, 0, 0] },
+  boardfull: { pitch: 52, dist: 64, target: [0, 3, -4] },
 };
 const H = createHarness({
   autoOpen: false, ground: C.ground,
   view: VIEWS[SEG] || VIEWS.title,
-  lens: SEG === 'evidence' ? { focusBand: 0.18, maxBlur: 26 } : {},
+  lens: SEG === 'evidence' ? { focusBand: 0.18, maxBlur: 26 } : SEG === 'boardfull' ? { focusBand: 0.38, maxBlur: 11 } : {},
   bounds: { x0: -52, x1: 52, z0: -42, z1: 28 },
 });
 const popup = (pts, paint, o = {}) => H.popup(pts, paint, o);
@@ -111,11 +113,7 @@ const amountPiece = P2.drawnPiece((g, ink) => {
   text(g, ink, '目標', 0, 0.58, 0.5, C.goldDeep, 700);
 }, { w: 5.8, h: 2.6, name: 'amount card' });
 
-if (SEG === 'ground') {
-  // bare paper ground at the title segment's end camera (top-down over the coin's flat centre).
-  // No pieces at all: this still is the 2D data segment's background, so the transition-1 splice
-  // shares literally the same ground pixels as the 3D end frame.
-} else if (SEG === 'title') {
+if (SEG === 'title') {
   const titleBoard = P2.drawnPiece((g, ink) => {
     g.fillStyle = ink(C.card); D.rect(g, -8, 0, 16, 7, 0.25);
     g.fillStyle = ink(C.green); D.rect(g, -8, 5.9, 16, 1.1, 0.2);
@@ -199,9 +197,9 @@ if (SEG === 'ground') {
   const boardH = popup(boardPanel[0], boardPanel[1], { x: 13, z: -7.5, height: 11.5 });
   const node3 = popup(...nodeCard(3, '新NISA', 'つみたて枠へ回す', 1.45), { x: 20.4, z: -2.2, height: 4.9 });
   const node1 = popup(...nodeCard(1, 'ChatGPT', 'AIに下書きを頼む'), { x: 5.6, z: -2.2, height: 4.9 });
-  const arr1 = popup(chevron[0], chevron[1], { x: 9.3, z: -1.6, height: 2.55 });
+  const arr1 = popup(chevron[0], chevron[1], { x: 9.3, z: -3.4, height: 2.55 });
   const node2 = popup(...nodeCard(2, '小さな仕事', 'まず1件、受けてみる'), { x: 13, z: -2.2, height: 4.9 });
-  const arr2 = popup(chevron[0], chevron[1], { x: 16.7, z: -1.6, height: 2.55 });
+  const arr2 = popup(chevron[0], chevron[1], { x: 16.7, z: -3.4, height: 2.55 });
   const bannerH = popup(banner[0], banner[1], { x: 13, z: 2.6, height: 1.7 });
   const dress = [
     popup(...tuft(3.2, 2.0, C.greenMid), { x: 23.5, z: 3.0, sway: 0.7 }),
@@ -305,13 +303,9 @@ if (SEG === 'ground') {
   // style frame 8: the paper coin + sprout as a tilt-shift macro hero
   const coinH = popup(null, null, { node: makeCoin(0, 0), height: 4.1, x: 0, z: 0, sway: 0.25 });
   const t1 = popup(...tuft(3.4, 2.1, C.greenMid), { x: -5.2, z: 1.8, sway: 0.7 });
-  const t2 = popup(...tuft(2.8, 1.8, P2.shade(C.greenMid, 0.15)), { x: 5.0, z: 2.4, sway: 0.7 });
+  const t2 = popup(...tuft(2.8, 1.8, P2.shade(C.greenMid, 0.15)), { x: 5.0, z: 1.8, sway: 0.7 });
   const s1 = popup(...sail(9, 4.6, C.greenSoft), { x: -9, z: -8, sway: 0.3 });
   H.cue(0.3, () => { H.fold(coinH, true); H.fold(t1, true); H.fold(t2, true); H.fold(s1, true); });
-} else if (SEG === 'cardtex') {
-  // one flat chart strip filling the frame: native-resolution card-paper + track-recess textures
-  // for the 2D data segment's cards (same material, cropped — no flat CSS colours).
-  popup(...stripPiece(''), { x: 0, z: 0, yaw: 0 });
 } else if (SEG === 'endcard') {
   // style frame 9: paper end card — channel name card, small persona card, disclaimer strip flat in front
   const main = P2.drawnPiece((g, ink) => {
@@ -339,6 +333,96 @@ if (SEG === 'ground') {
   };
   img.onerror = () => { window.__imgPending = false; console.error('avatar image failed to load'); };
   img.src = 'assets/avatar.webp';
+}
+
+else if (SEG === 'groundtop') {
+  // EP001: clean top-down plate of the printed paper ground — THE background source for all 2D
+  // segments (same-source rule: 2D backgrounds are this render, never an SVG/CSS re-drawing).
+  // No pieces, no cues: just the ground, shot straight down.
+} else if (SEG === 'coinflat') {
+  // EP001: the coin lying flat, shot top-down close — the 2D segments use THIS render of the coin
+  // (same-source rule for cross-boundary narrative elements), cropped to a disc sprite in post.
+  popup(null, null, { node: makeCoin(0, 2.05), height: 4.1, x: 0, z: 2.05, sway: 0 });
+} else if (SEG === 'cardtex') {
+  // EP001: one huge blank paper card lying flat, top-down — centre crop becomes the paper texture
+  // for 2D paper cards/strips (same material family as the 3D cards, no flat colour blocks).
+  const blank = P2.drawnPiece((g, ink) => {
+    g.fillStyle = ink(C.card); D.rect(g, -15, 0, 30, 17, 0.2);
+  }, { w: 30.4, h: 17.4, name: 'blank card texture' });
+  popup(blank[0], blank[1], { x: 0, z: 8.5, yaw: 0 });
+} else if (SEG === 'boardfull') {
+  // EP001 summary blackboard, full version: N1-N9 in a 3x3 snake flow on the paper ground.
+  // ?nodes=k renders the board state with the first k nodes risen (0 = empty board, 9 = complete);
+  // without the param all 9 rise in order, banner last — that is the seg19 animation.
+  // Colour code (spec): fact nodes = ink-green solid; N9 (future/projection) = gold dashed border.
+  const K = (() => { const v = parseInt(new URLSearchParams(location.search).get('nodes') || '9', 10); return Math.max(0, Math.min(9, v)); })();
+  const panel = P2.drawnPiece((g, ink) => {
+    g.fillStyle = ink(C.card); D.rect(g, -18, 0, 36, 12.5, 0.3);
+    g.fillStyle = ink(C.green); D.rect(g, -18, 10.1, 36, 2.4, 0.25);
+    g.fillStyle = ink(C.gold); D.rect(g, -18, 9.85, 36, 0.25, 0.05);
+    text(g, ink, 'まとめボード', -17.2, 11.3, 1.3, '#F8F2E2', 800, 'left');
+    text(g, ink, '設計 → 手順 → 検証 → 接続', 17.2, 11.3, 0.8, C.goldPale, 500, 'right');
+    text(g, ink, 'この回の流れ：月1万円の設計図', -17.2, 8.9, 0.85, C.green, 700, 'left');
+  }, { w: 36.6, h: 13.1, name: 'full summary board panel' });
+  const bNode = (num, main, sub, gold = false, subSize = 0.66) => P2.drawnPiece((g, ink) => {
+    g.fillStyle = ink(C.card); D.rect(g, -4.6, 0, 9.2, 4.9, 0.3);
+    if (gold) { // dashed gold border: the projection/future node
+      g.fillStyle = ink(C.goldDeep);
+      for (let x = -4.3; x < 4.3; x += 0.75) { D.rect(g, x, 4.55, 0.45, 0.16, 0.05); D.rect(g, x, 0.2, 0.45, 0.16, 0.05); }
+      for (let y = 0.5; y < 4.4; y += 0.75) { D.rect(g, -4.42, y, 0.16, 0.45, 0.05); D.rect(g, 4.26, y, 0.16, 0.45, 0.05); }
+    }
+    g.fillStyle = ink(gold ? C.gold : C.green); D.ell(g, 0, 3.95, 0.52, 0.52);
+    text(g, ink, String(num), 0, 3.95, 0.62, '#F8F2E2', 800);
+    g.fillStyle = ink(C.gold); D.rect(g, -1.1, 2.92, 2.2, 0.1, 0.04);
+    text(g, ink, main, 0, 2.12, 1.24, C.ink, 800);
+    text(g, ink, sub, 0, 0.95, subSize, C.muted, 500);
+  }, { w: 9.6, h: 5.3, name: 'board node ' + num });
+  const chev = P2.drawnPiece((g, ink) => {
+    g.fillStyle = ink(C.gold); D.poly(g, [[-0.55, 0], [0.35, 0.85], [0.35, 1.7], [-0.55, 2.55], [-1.15, 1.7], [-1.15, 0.85]]);
+  }, { w: 1.7, h: 2.9, name: 'board chevron' });
+  const downArrow = P2.drawnPiece((g, ink) => {
+    g.fillStyle = ink(C.goldDeep);
+    D.poly(g, [[-0.28, 0], [0.28, 0], [0.28, 1.1], [0.75, 1.1], [0, 2.0], [-0.75, 1.1], [-0.28, 1.1]]);
+  }, { w: 1.9, h: 2.4, name: 'row link arrow' });
+  const banner2 = P2.drawnPiece((g, ink) => {
+    g.fillStyle = ink(C.green); D.rect(g, -8.6, 0, 17.2, 1.7, 0.2);
+    text(g, ink, '月1万円は「目標」— シミュレーションです', 0, 0.85, 0.78, '#F8F2E2', 700);
+  }, { w: 17.6, h: 2.0, name: 'board banner' });
+
+  const panelH = popup(panel[0], panel[1], { x: 0, z: -14.5, height: 12.5 });
+  // snake flow: row1 L->R (N1 N2 N3), row2 R->L (N4 N5 N6 placed R,C,L), row3 L->R (N7 N8 N9)
+  const defs = [
+    { n: 1, main: '設計', sub: '月1万円を件数に変える', x: -11.5, z: -8.6 },
+    { n: 2, main: '内訳', sub: '単価 × 件数（試算）', x: 0, z: -8.6 },
+    { n: 3, main: '時間', sub: '週5時間の設計', x: 11.5, z: -8.6 },
+    { n: 4, main: 'ジャンル', sub: '文章系に固定', x: 11.5, z: -3.4 },
+    { n: 5, main: '失敗回避', sub: '迷走・丸投げ・記録なし', x: 0, z: -3.4, subSize: 0.58 },
+    { n: 6, main: '手順', sub: '下書きAI／仕上げ人間', x: -11.5, z: -3.4, subSize: 0.6 },
+    { n: 7, main: '案件と応募', sub: '1日1件・丁寧に', x: -11.5, z: 1.8, mainSize: 1.05 },
+    { n: 8, main: '記録と検証', sub: '30日後に数字で見る', x: 0, z: 1.8, mainSize: 1.05, subSize: 0.6 },
+    { n: 9, main: '接続', sub: '副業収入 → 新NISA（将来）', x: 11.5, z: 1.8, gold: true, subSize: 0.56 },
+  ];
+  const handles = defs.map(d => {
+    const piece = bNode(d.n, d.main, d.sub, !!d.gold, d.subSize || 0.66);
+    return popup(piece[0], piece[1], { x: d.x, z: d.z, height: 4.9 });
+  });
+  // horizontal chevrons between neighbours in flow direction
+  const chevAt = (x, z, flip) => popup(chev[0], chev[1], { x, z, height: 2.55, yaw: flip ? Math.PI : 0 });
+  const chevs = [
+    chevAt(-5.7, -7.9, false), chevAt(5.7, -7.9, false),           // N1->N2, N2->N3
+    chevAt(5.7, -2.7, true), chevAt(-5.7, -2.7, true),             // N4->N5, N5->N6 (right to left)
+    chevAt(-5.7, 2.5, false), chevAt(5.7, 2.5, false),            // N7->N8, N8->N9
+  ];
+  popup(downArrow[0], downArrow[1], { x: 11.5, z: -6.0, yaw: 0 });  // N3 -> N4 (flat ground link)
+  popup(downArrow[0], downArrow[1], { x: -11.5, z: -0.8, yaw: 0 });  // N6 -> N7 (flat ground link)
+  const bannerH = popup(banner2[0], banner2[1], { x: 0, z: 5.8, height: 1.7 });
+  const bd1 = popup(...tuft(3.2, 2.0, C.greenMid), { x: -19, z: 3.5, sway: 0.7 });
+  const bd2 = popup(...tuft(3.2, 2.0, C.greenMid), { x: 19, z: 3.5, sway: 0.7 });
+  const bd3 = popup(...sail(10, 5.0, C.greenSoft), { x: 22, z: -13, sway: 0.3 });
+  H.cue(0.2, () => H.fold(panelH, true));
+  handles.forEach((h, i) => { if (i < K) H.cue(0.45 + i * 0.22, () => H.fold(h, true)); });
+  chevs.forEach((h, i) => { if (i < K) H.cue(0.55 + i * 0.22, () => H.fold(h, true)); });
+  if (K >= 9) H.cue(2.6, () => { H.fold(bannerH, true); H.fold(bd1, true); H.fold(bd2, true); H.fold(bd3, true); });
 }
 
 H.start();
