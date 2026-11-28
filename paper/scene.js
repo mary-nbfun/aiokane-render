@@ -42,7 +42,7 @@ const VIEWS = {
   board: { pitch: 46, dist: 47, target: [13, 3.2, -3.2] },
   steps: { pitch: 44, dist: 42, target: [0, 2.0, -2.5] },
   persona: { pitch: 42, dist: 30, target: [0, 2.6, -1] },
-  evidence: { pitch: 40, dist: 34, target: [0, 2.4, -2] },
+  evidence: { pitch: 40, dist: 34, target: [0, 2.2, -0.8] },
   chapter: { pitch: 44, dist: 37, target: [0, 2.2, -2] },
   coin: { pitch: 50, dist: 16, target: [0, 1.5, 0] },
   endcard: { pitch: 44, dist: 40, target: [0, 2.0, -1] },
@@ -276,7 +276,7 @@ if (SEG === 'title') {
     text(g, ink, '出典：国税庁ウェブサイト（イメージ図）', 0, 0.75, 0.54, C.muted, 500);
   }, { w: 11.4, h: 1.9, name: 'source strip' });
   const evH = popup(snap[0], snap[1], { x: 0, z: -2.5, yaw: -0.3, edge: 0.16, height: 8.6 });
-  popup(srcStrip[0], srcStrip[1], { x: 0.5, z: 3.6, yaw: 0 });   // flat on the ground: centre (0.5, 2.85)
+  popup(srcStrip[0], srcStrip[1], { x: 0.5, z: 1.95, yaw: 0 });   // flat on the ground: centre (0.5, 1.2), close enough to the focal plane to stay readable
   const t1 = popup(...tuft(3.0, 1.9, C.greenMid), { x: -10.5, z: 3.5, sway: 0.7 });
   H.cue(0.3, () => { H.fold(evH, true); H.fold(t1, true); });
 } else if (SEG === 'chapter') {
@@ -313,11 +313,11 @@ if (SEG === 'title') {
     text(g, ink, 'ご視聴ありがとうございました', 0, 1.5, 0.85, C.green, 700);
   }, { w: 15.4, h: 6.6, name: 'end card main' });
   const disc2 = P2.drawnPiece((g, ink) => {
-    g.fillStyle = ink(C.card); D.rect(g, -7, 0, 14, 1.7, 0.14);
-    text(g, ink, '収益は保証されません／本動画は投資助言ではありません', 0, 0.85, 0.55, C.muted, 500);
-  }, { w: 14.4, h: 2.1, name: 'disclaimer strip' });
+    g.fillStyle = ink(C.card); D.rect(g, -7.5, 0, 15, 1.7, 0.14);
+    text(g, ink, '収益は保証されません／本動画は投資助言ではありません', 0, 0.85, 0.47, C.muted, 500);
+  }, { w: 15.4, h: 2.1, name: 'disclaimer strip' });
   const mH = popup(main[0], main[1], { x: -3, z: -2.5, height: 6.2 });
-  popup(disc2[0], disc2[1], { x: 0, z: 5.4, yaw: 0 });   // flat: centre (0, 4.55)
+  popup(disc2[0], disc2[1], { x: 0, z: 4.9, yaw: 0 });   // flat: centre (0, 4.05)
   H.cue(0.3, () => H.fold(mH, true));
   window.__imgPending = true;
   const img = new Image();
