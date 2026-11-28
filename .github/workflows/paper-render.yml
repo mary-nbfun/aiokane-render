@@ -46,7 +46,7 @@ jobs:
       matrix:
         include:
           - seg: title
-            dur: '7'
+            dur: '6.2'
           - seg: board
             dur: '4.6'
     steps:
