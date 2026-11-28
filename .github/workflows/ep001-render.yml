@@ -27,7 +27,7 @@ jobs:
       matrix:
         seg: [seg01b, seg02, seg03, seg04, seg04b, seg05, seg06, seg07, seg08,
               seg09, seg09b, seg10, seg11, seg12, seg13, seg14, seg15, seg15b,
-              seg16, seg16b, seg17, seg17b, seg17c, seg18, seg19]
+              seg16, seg16b, seg17, seg17b, seg17c, seg18, seg19, seg19ovB, seg19ovW]
     steps:
       - uses: actions/checkout@v4
 
