@@ -1,0 +1,61 @@
+name: ep001-render
+
+# EP001 2D compositions (givemotion HTML -> MP4), one matrix job per segment.
+# Same line as render.yml (givemotion@0.1.6, native 1080p render); the EP001
+# compositions carry their own assets incl. @font-face BIZ UDPGothic ttf under
+# ep001-2d/assets/fonts, so no system font install is needed for them (noto is
+# installed anyway as the fallback in the font stack). Artifacts retained 7
+# days; matrix parallelism capped at 4 by design (repo convention).
+
+on:
+  workflow_dispatch:
+    inputs:
+      quality:
+        description: givemotion render quality
+        type: choice
+        options: [draft, standard, high, max]
+        default: draft
+
+jobs:
+  render:
+    name: render ${{ matrix.seg }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        seg: [seg01b, seg02, seg03, seg04, seg04b, seg05, seg06, seg07, seg08,
+              seg09, seg09b, seg10, seg11, seg12, seg13, seg14, seg15, seg15b,
+              seg16, seg16b, seg17, seg17b, seg17c, seg18, seg19]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Allow Chrome sandbox on Ubuntu 24.04 (AppArmor userns restriction)
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
+      - name: Install ffmpeg and Japanese fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-noto-cjk
+
+      - name: Install givemotion Chrome
+        run: npx -y givemotion@0.1.6 install
+
+      - name: Render segment ${{ matrix.seg }} (native 1920x1080)
+        run: |
+          mkdir -p out
+          npx -y givemotion@0.1.6 render ep001-2d/${{ matrix.seg }}.html \
+            -o out/${{ matrix.seg }}.mp4 \
+            --quality ${{ inputs.quality || 'draft' }} --json
+
+      - name: Upload segment
+        uses: actions/upload-artifact@v4
+        with:
+          name: ep001-seg-${{ matrix.seg }}
+          path: out/${{ matrix.seg }}.mp4
+          retention-days: 7

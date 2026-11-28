@@ -1,0 +1,146 @@
+<!doctype html>
+<!-- EP001 seg09b (単価の計算例) — givemotion composition, 46.81s local. Master table: 08_timestamps.json.
+     Background/coin/paper texture are 3D-scene renders (same-source rule). SFX cues archived, not used. -->
+<html data-width="1920" data-height="1080" data-fps="30">
+<head><meta charset="utf-8"><style>
+@font-face{ font-family:"BIZ UDPGothic"; src:url(assets/fonts/BIZUDPGothic-Regular.ttf) format("truetype"); font-weight:400; }
+@font-face{ font-family:"BIZ UDPGothic"; src:url(assets/fonts/BIZUDPGothic-Bold.ttf) format("truetype"); font-weight:700 900; }
+:root{
+  --bg:#efe6d0; --card:#f8f2e2; --ink:#2e2a26; --muted:#6b6156;
+  --green:#1f4d3a; --green-mid:#2e6b4f; --gold:#c29b3c; --gold-pale:#e7cc7e; --gold-deep:#9a7a2a;
+  --track:#e2d5b8; --warn:#a63d2f;
+  --sans:"BIZ UDPGothic","Noto Sans CJK JP",sans-serif;
+  --serif:"BIZ UDPGothic","Noto Sans CJK JP",sans-serif;
+}
+*{ box-sizing:border-box; }
+body{ background:var(--bg); color:var(--ink); font-family:var(--sans); margin:0; overflow:hidden; }
+.scene{ position:relative; width:1920px; height:1080px; }
+/* L0: the channel's one paper ground — a 3D render of the same ground, softened behind data */
+.bgimg{ position:absolute; inset:-30px; z-index:0; background:url(assets/ground-top.png) center/cover no-repeat;
+        filter:blur(6px) contrast(.93) brightness(1.0) saturate(1.02); }
+.veil{ position:absolute; inset:0; z-index:1; background:rgba(239,230,208,.10); }
+/* paper material for every card/strip: the 3D card texture under a light card tint */
+.paper{ background:linear-gradient(rgba(248,242,226,.62),rgba(248,242,226,.62)), url(assets/paper-tex.png);
+        background-size:auto, 512px 512px; border-radius:12px 15px 11px 16px / 15px 11px 16px 12px;
+        box-shadow:4px 5px 0 -1px #e6dbc0, 8px 10px 0 -2px #d9cbab, 7px 18px 30px rgba(90,55,20,.26),
+        inset 0 0 0 2px rgba(46,42,38,.20); }
+.kicker{ position:absolute; left:110px; top:64px; font-size:29px; font-weight:700; letter-spacing:.3em; color:var(--gold-deep); z-index:5; }
+.segtitle{ position:absolute; left:110px; top:106px; font-family:var(--serif); font-size:64px; font-weight:700; z-index:5; }
+.segtitle .g{ color:var(--gold-deep); }
+.headrule{ position:absolute; left:110px; top:216px; width:1700px; height:3px; background:var(--ink); opacity:.75; z-index:5;
+           transform-origin:left center; animation:growx .6s ease-out .3s both; }
+.stage{ position:absolute; left:110px; top:250px; width:1700px; height:600px; z-index:4; }
+/* subtitles (L5): bottom, always on top; gold emphasis */
+.sub{ position:absolute; left:50%; bottom:40px; transform:translateX(-50%); z-index:40;
+      font-size:48px; font-weight:700; line-height:1.25; text-align:center; color:#fbf6ea;
+      background:rgba(84,66,48,.55); padding:13px 30px 15px; border-radius:12px; max-width:1520px;
+      text-shadow:0 1px 3px rgba(43,36,28,.45); opacity:0; white-space:nowrap; }
+.sub .g{ color:#e9c979; }
+.sub .gr{ color:var(--green); }
+/* found real materials: scene photos in a paper frame; element cutouts as paper-ground stickers */
+.pframe{ position:absolute; border:6px solid #fbf7ec; border-radius:8px; overflow:hidden;
+         box-shadow:5px 6px 0 -1px #e6dbc0, 10px 20px 34px rgba(90,55,20,.32); }
+.pframe img{ width:100%; height:100%; object-fit:cover; display:block; }
+.pframe .credit{ position:absolute; right:10px; bottom:8px; font-size:20px; color:#fff8ea;
+                 background:rgba(43,36,28,.55); padding:3px 10px; border-radius:6px; }
+.cutout{ position:absolute; filter:drop-shadow(5px 10px 14px rgba(90,55,20,.35)); }
+/* mini blackboard (progress map, top-right corner) */
+.minibb{ position:absolute; right:56px; top:52px; width:308px; z-index:30; padding:14px 16px 10px; }
+.minibb .bbt{ font-size:21px; font-weight:700; color:var(--green); letter-spacing:.12em; margin-bottom:8px; }
+.minibb .bbt span{ color:var(--gold-deep); }
+.minibb .chip{ display:inline-block; font-size:19px; font-weight:700; padding:3px 9px; margin:0 5px 6px 0;
+               border:2px solid rgba(31,77,58,.35); color:rgba(46,42,38,.38); border-radius:4px; }
+.minibb .chip.on{ background:var(--green); border-color:var(--green); color:#f8f2e2; }
+.minibb .chip.on.gold{ background:var(--gold-deep); border-color:var(--gold-deep); }
+.minibb .chip.new{ animation:chippop .5s ease-out both; }
+/* persona watermark: small round avatar, bottom-right, same spot/size in every content segment.
+   Subtitles (z 40) stay on top; .sub max-width leaves the watermark corner free. */
+.wm{ position:absolute; right:48px; bottom:44px; width:120px; height:120px; border-radius:50%;
+     object-fit:cover; z-index:35; border:4px solid rgba(248,242,226,.92);
+     box-shadow:0 8px 20px rgba(90,55,20,.30); }
+/* generic content pieces */
+.card{ padding:34px 40px; }
+.card h3{ margin:0 0 10px; font-size:44px; font-weight:800; }
+.card p{ margin:0; font-size:31px; line-height:1.55; color:var(--ink); }
+.card p .g, .big .g{ color:var(--gold-deep); font-weight:800; }
+.big{ font-size:120px; font-weight:800; font-variant-numeric:tabular-nums; }
+table.pt{ border-collapse:collapse; width:100%; font-size:34px; }
+table.pt th, table.pt td{ padding:20px 26px; text-align:left; border-bottom:3px solid rgba(46,42,38,.16); }
+table.pt th{ color:var(--green); font-weight:800; white-space:nowrap; }
+table.pt td.n{ text-align:right; font-variant-numeric:tabular-nums; font-weight:700; white-space:nowrap; }
+ul.rows{ list-style:none; margin:0; padding:0; }
+ul.rows li{ font-size:38px; font-weight:700; padding:20px 28px; margin-bottom:16px; }
+ul.rows li small{ display:block; font-size:27px; font-weight:500; color:var(--muted); margin-top:4px; }
+.strip{ position:relative; height:170px; padding:0 40px; display:flex; align-items:center; }
+.strip .expr{ font-size:66px; font-weight:800; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.strip .expr .x{ color:var(--muted); font-size:48px; margin:0 10px; }
+.strip .track{ position:relative; flex:1; height:72px; margin-left:44px; background:var(--track); border-radius:4px; overflow:hidden; }
+.strip .bar{ position:absolute; inset:0; background:linear-gradient(180deg,#cfa844,#bd9433); transform-origin:left center; }
+.strip .bar.seg{ background:transparent; display:flex; gap:6px; }
+.strip .bar.seg i{ flex:1; background:linear-gradient(180deg,#cfa844,#bd9433); display:block; transform-origin:left center; }
+.eqtag{ font-size:50px; font-weight:800; color:var(--green); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.flowrow{ display:flex; align-items:center; gap:24px; }
+.fchip{ padding:22px 32px; font-size:38px; font-weight:800; text-align:center; }
+.fchip small{ display:block; font-size:24px; font-weight:500; color:var(--muted); margin-top:4px; }
+.conn{ flex:1; height:6px; background:linear-gradient(180deg,#dcbc6a,#c9a24a); position:relative; min-width:56px;
+       border-radius:3px; filter:drop-shadow(2px 3px 3px rgba(90,55,20,.35)); }
+.conn::after{ content:""; position:absolute; right:-2px; top:-9px; border-left:20px solid var(--gold);
+              border-top:11px solid transparent; border-bottom:11px solid transparent; }
+.mockwin{ padding:0; overflow:hidden; }
+.mockwin .bar2{ background:var(--green); color:#f8f2e2; padding:16px 28px; font-size:28px; font-weight:700;
+                display:flex; justify-content:space-between; }
+.mockwin .bar2 .dots{ color:var(--gold-pale); letter-spacing:.3em; }
+.mockwin .body{ padding:28px 34px; font-size:31px; line-height:1.6; }
+.mockwin .body .lbl{ font-size:24px; font-weight:700; color:var(--gold-deep); letter-spacing:.18em; }
+.check li::before{ content:"✓"; color:var(--green); font-weight:800; margin-right:14px; }
+.warnmark{ color:var(--warn); font-weight:800; }
+.foot{ position:absolute; left:110px; bottom:170px; font-size:28px; color:var(--muted); z-index:5; }
+@keyframes fadeup{ from{ opacity:0; transform:translateY(26px); } to{ opacity:1; transform:translateY(0); } }
+@keyframes growx{ from{ transform:scaleX(0); } to{ transform:scaleX(1); } }
+@keyframes popin{ from{ opacity:0; transform:scale(.92); } to{ opacity:1; transform:scale(1); } }
+@keyframes chippop{ 0%{ transform:scale(.6); } 60%{ transform:scale(1.18); } 100%{ transform:scale(1); } }
+
+@keyframes subseg09b0{ 0%,0.000%{opacity:0} 0.250%,5.741%{opacity:1} 5.941%,100%{opacity:0} }
+@keyframes subseg09b1{ 0%,5.941%{opacity:0} 6.191%,9.370%{opacity:1} 9.570%,100%{opacity:0} }
+@keyframes subseg09b2{ 0%,9.570%{opacity:0} 9.820%,16.632%{opacity:1} 16.832%,100%{opacity:0} }
+@keyframes subseg09b3{ 0%,16.832%{opacity:0} 17.082%,25.542%{opacity:1} 25.742%,100%{opacity:0} }
+@keyframes subseg09b4{ 0%,25.742%{opacity:0} 25.992%,32.803%{opacity:1} 33.003%,100%{opacity:0} }
+@keyframes subseg09b5{ 0%,33.003%{opacity:0} 33.253%,39.115%{opacity:1} 39.315%,100%{opacity:0} }
+@keyframes subseg09b6{ 0%,39.315%{opacity:0} 39.565%,44.685%{opacity:1} 44.885%,100%{opacity:0} }
+@keyframes subseg09b7{ 0%,44.885%{opacity:0} 45.135%,50.955%{opacity:1} 51.155%,100%{opacity:0} }
+@keyframes subseg09b8{ 0%,51.155%{opacity:0} 51.405%,56.896%{opacity:1} 57.096%,100%{opacity:0} }
+@keyframes subseg09b9{ 0%,57.096%{opacity:0} 57.346%,65.477%{opacity:1} 65.677%,100%{opacity:0} }
+@keyframes subseg09b10{ 0%,65.677%{opacity:0} 65.927%,72.408%{opacity:1} 72.608%,100%{opacity:0} }
+@keyframes subseg09b11{ 0%,72.608%{opacity:0} 72.858%,76.699%{opacity:1} 76.899%,100%{opacity:0} }
+@keyframes subseg09b12{ 0%,76.899%{opacity:0} 77.149%,81.648%{opacity:1} 81.848%,100%{opacity:0} }
+@keyframes subseg09b13{ 0%,81.848%{opacity:0} 82.098%,89.612%{opacity:1} 89.812%,100%{opacity:0} }
+@keyframes subseg09b14{ 0%,89.812%{opacity:0} 90.062%,93.859%{opacity:1} 94.059%,100%{opacity:0} }
+@keyframes subseg09b15{ 0%,94.059%{opacity:0} 94.309%,99.800%{opacity:1} 100.000%,100%{opacity:0} }
+</style></head>
+<body><main data-sequence>
+<section class="scene" data-duration="46.811">
+  <div class="bgimg"></div><div class="veil"></div>
+  <div class="kicker">EP001｜単価の計算例</div>
+  <div class="segtitle">目標を、記事の本数に分解する</div>
+  <div class="headrule"></div>
+  <div class="stage"><div class="strip paper" style="margin-bottom:24px;height:150px"><div class="expr" style="font-size:56px">1本 3,000円<span class="x">× 4本</span></div><div class="track"><div class="bar" style="width:100%;animation:growx 1s cubic-bezier(.6,0,.2,1) 3.0s both"></div></div><div class="eqtag" style="margin-left:32px;animation:fadeup .45s ease-out 4.1s both">= 12,000円</div></div><div class="strip paper" style="margin-bottom:24px;height:150px"><div class="expr" style="font-size:56px">1本 5,000円<span class="x">× 2本</span></div><div class="track"><div class="bar" style="width:83%;animation:growx 1s cubic-bezier(.6,0,.2,1) 5.6s both"></div></div><div class="eqtag" style="margin-left:32px;animation:fadeup .45s ease-out 6.7s both">= 10,000円</div></div><div class="strip paper" style="margin-bottom:24px;height:150px"><div class="expr" style="font-size:56px">1本 1,000円<span class="x">× 10本</span></div><div class="track"><div class="bar" style="width:83%;animation:growx 1s cubic-bezier(.6,0,.2,1) 8.2s both"></div></div><div class="eqtag" style="margin-left:32px;animation:fadeup .45s ease-out 9.3s both">= 10,000円</div></div><p style="font-size:32px;margin-top:14px" style="animation:fadeup 0.5s ease-out 24.0s both">目安は1本<span class="g">3,000円以上</span>。時間あたり<span class="g">1,500円</span>を下回る案件は、最初から候補に入れません。</p></div>
+  <div class="minibb paper"><div class="bbt">まとめボード <span>6/9</span></div><span class="chip on" style="animation-delay:0.5s">1</span><span class="chip on" style="animation-delay:0.5s">2</span><span class="chip on" style="animation-delay:0.5s">3</span><span class="chip on" style="animation-delay:0.5s">4</span><span class="chip on" style="animation-delay:0.5s">5</span><span class="chip on" style="animation-delay:0.5s">6</span><span class="chip" style="animation-delay:0.5s">7</span><span class="chip" style="animation-delay:0.5s">8</span><span class="chip" style="animation-delay:0.5s">9</span></div>
+  
+  <img class="wm" src="assets/avatar.webp" alt="">
+  <div class="sub" style="animation:subseg09b0 46.811s linear both">ここで、単価の計算例を<span class="g">1つ</span>出します。</div>
+<div class="sub" style="animation:subseg09b1 46.811s linear both">あくまで設計の例です。</div>
+<div class="sub" style="animation:subseg09b2 46.811s linear both"><span class="g">目標</span>の<span class="g">1万円</span>を、記事の本数に分解してみます。</div>
+<div class="sub" style="animation:subseg09b3 46.811s linear both"><span class="g">1本</span><span class="g">3,000円</span>の記事なら、月に<span class="g">4本</span>で<span class="g">12,000円</span>。</div>
+<div class="sub" style="animation:subseg09b4 46.811s linear both"><span class="g">1本</span><span class="g">5,000円</span>なら、月に<span class="g">2本</span>で<span class="g">1万円</span>です。</div>
+<div class="sub" style="animation:subseg09b5 46.811s linear both">逆に、<span class="g">1本</span><span class="g">1,000円</span>の案件ばかりだと、</div>
+<div class="sub" style="animation:subseg09b6 46.811s linear both">月に<span class="g">10本</span>書かないと届きません。</div>
+<div class="sub" style="animation:subseg09b7 46.811s linear both"><span class="g">1本</span>に<span class="g">2時間</span>かかるなら、合計<span class="g">20時間</span>。</div>
+<div class="sub" style="animation:subseg09b8 46.811s linear both">本業の合間では、かなり重くなります。</div>
+<div class="sub" style="animation:subseg09b9 46.811s linear both">だから初月は、本数を増やすより、単価の設計が先です。</div>
+<div class="sub" style="animation:subseg09b10 46.811s linear both">安い案件で数をこなすと、時間だけが消えて、</div>
+<div class="sub" style="animation:subseg09b11 46.811s linear both">検証する体力も残りません。</div>
+<div class="sub" style="animation:subseg09b12 46.811s linear both">目安は、<span class="g">1本</span><span class="g">3,000円</span>以上。</div>
+<div class="sub" style="animation:subseg09b13 46.811s linear both">時間あたりに換算して、<span class="g">1,500円</span>を下回る案件は、</div>
+<div class="sub" style="animation:subseg09b14 46.811s linear both">最初から候補に入れない。</div>
+<div class="sub" style="animation:subseg09b15 46.811s linear both">これが、この計画の単価の置き方です。</div>
+</section></main></body></html>
