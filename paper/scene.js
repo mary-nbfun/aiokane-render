@@ -46,6 +46,8 @@ const VIEWS = {
   chapter: { pitch: 44, dist: 37, target: [0, 2.2, -2] },
   coin: { pitch: 50, dist: 16, target: [0, 1.5, 0] },
   endcard: { pitch: 44, dist: 40, target: [0, 2.0, -1] },
+  ground: { pitch: 85, dist: 22, target: [-6.4, 0.3, -0.55] },
+  cardtex: { pitch: 85, dist: 7.5, target: [0, 0.2, -1.0] },
 };
 const H = createHarness({
   autoOpen: false, ground: C.ground,
@@ -109,7 +111,11 @@ const amountPiece = P2.drawnPiece((g, ink) => {
   text(g, ink, '目標', 0, 0.58, 0.5, C.goldDeep, 700);
 }, { w: 5.8, h: 2.6, name: 'amount card' });
 
-if (SEG === 'title') {
+if (SEG === 'ground') {
+  // bare paper ground at the title segment's end camera (top-down over the coin's flat centre).
+  // No pieces at all: this still is the 2D data segment's background, so the transition-1 splice
+  // shares literally the same ground pixels as the 3D end frame.
+} else if (SEG === 'title') {
   const titleBoard = P2.drawnPiece((g, ink) => {
     g.fillStyle = ink(C.card); D.rect(g, -8, 0, 16, 7, 0.25);
     g.fillStyle = ink(C.green); D.rect(g, -8, 5.9, 16, 1.1, 0.2);
@@ -117,7 +123,7 @@ if (SEG === 'title') {
     g.fillStyle = ink(C.gold); D.rect(g, -3.4, 3.3, 6.8, 0.14, 0.05);
     text(g, ink, 'AIとお金の実践室', 0, 4.5, 1.66, C.ink, 800);
     text(g, ink, 'AI活用 × 副業 × NISA', 0, 2.35, 0.92, C.green, 700);
-    text(g, ink, 'サカイの実践室', 0, 1.15, 0.66, '#6B6156', 500);
+    text(g, ink, '境の実践室', 0, 1.15, 0.66, '#6B6156', 500);
   }, { w: 16.4, h: 7.4, name: 'title board' });
 
   const coinNode = makeCoin(-6.4, 1.5);
@@ -302,6 +308,10 @@ if (SEG === 'title') {
   const t2 = popup(...tuft(2.8, 1.8, P2.shade(C.greenMid, 0.15)), { x: 5.0, z: 2.4, sway: 0.7 });
   const s1 = popup(...sail(9, 4.6, C.greenSoft), { x: -9, z: -8, sway: 0.3 });
   H.cue(0.3, () => { H.fold(coinH, true); H.fold(t1, true); H.fold(t2, true); H.fold(s1, true); });
+} else if (SEG === 'cardtex') {
+  // one flat chart strip filling the frame: native-resolution card-paper + track-recess textures
+  // for the 2D data segment's cards (same material, cropped — no flat CSS colours).
+  popup(...stripPiece(''), { x: 0, z: 0, yaw: 0 });
 } else if (SEG === 'endcard') {
   // style frame 9: paper end card — channel name card, small persona card, disclaimer strip flat in front
   const main = P2.drawnPiece((g, ink) => {
