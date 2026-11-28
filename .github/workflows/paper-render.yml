@@ -25,7 +25,7 @@ jobs:
         run: command -v ffmpeg || (sudo apt-get update && sudo apt-get install -y ffmpeg)
       - name: One still of the title segment (t=3.2s)
         run: |
-          time python paper/tools/capture.py paper check:time=3.2 --page "index.html?seg=title" --size 1080p
+          time python paper/tools/render_ci.py still title 3.2 paper/frames/check.png
       - uses: actions/upload-artifact@v4
         with:
           name: paper-still
@@ -33,8 +33,9 @@ jobs:
           retention-days: 7
 
   render:
-    name: render ${{ matrix.seg }}
+    name: render segment
     needs: still
+    timeout-minutes: 40
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
@@ -59,7 +60,7 @@ jobs:
         run: command -v ffmpeg || (sudo apt-get update && sudo apt-get install -y ffmpeg)
       - name: Render segment ${{ matrix.seg }} (${{ matrix.dur }}s @30fps, 1080p)
         run: |
-          time python paper/tools/capture.py paper seg-${{ matrix.seg }}:timeline=${{ matrix.dur }},30 --page "index.html?seg=${{ matrix.seg }}" --size 1080p
+          time timeout 1500 python paper/tools/render_ci.py video ${{ matrix.seg }} ${{ matrix.dur }} paper/frames/seg-${{ matrix.seg }}.mp4
       - uses: actions/upload-artifact@v4
         with:
           name: paper-seg-${{ matrix.seg }}
