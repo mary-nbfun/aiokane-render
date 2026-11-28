@@ -1,0 +1,67 @@
+name: paper-render
+
+# Papercraft 3D segments (title + board) rendered on the runner's headless Chrome (SwiftShader WebGL).
+# Kept separate from the givemotion 2D workflows (render.yml / render-matrix.yml): this one only
+# touches paper/ and uploads its MP4s as artifacts.
+on:
+  workflow_dispatch:
+
+jobs:
+  still:
+    name: verify one still first
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Allow Chrome sandbox on ubuntu-24.04
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - name: Install Playwright + Chromium
+        run: |
+          pip install playwright
+          playwright install chromium
+      - name: Ensure ffmpeg
+        run: command -v ffmpeg || (sudo apt-get update && sudo apt-get install -y ffmpeg)
+      - name: One still of the title segment (t=3.2s)
+        run: |
+          time python paper/tools/capture.py paper check:time=3.2 --page "index.html?seg=title" --size 1080p
+      - uses: actions/upload-artifact@v4
+        with:
+          name: paper-still
+          path: paper/frames/check.png
+          retention-days: 7
+
+  render:
+    name: render ${{ matrix.seg }}
+    needs: still
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - seg: title
+            dur: '7'
+          - seg: board
+            dur: '4.6'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Allow Chrome sandbox on ubuntu-24.04
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - name: Install Playwright + Chromium
+        run: |
+          pip install playwright
+          playwright install chromium
+      - name: Ensure ffmpeg
+        run: command -v ffmpeg || (sudo apt-get update && sudo apt-get install -y ffmpeg)
+      - name: Render segment ${{ matrix.seg }} (${{ matrix.dur }}s @30fps, 1080p)
+        run: |
+          time python paper/tools/capture.py paper seg-${{ matrix.seg }}:timeline=${{ matrix.dur }},30 --page "index.html?seg=${{ matrix.seg }}" --size 1080p
+      - uses: actions/upload-artifact@v4
+        with:
+          name: paper-seg-${{ matrix.seg }}
+          path: paper/frames/seg-${{ matrix.seg }}.mp4
+          retention-days: 7
