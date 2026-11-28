@@ -1,0 +1,134 @@
+<!doctype html>
+<!-- EP001 seg08 (ステップ3 改善) — givemotion composition, 31.71s local. Master table: 08_timestamps.json.
+     Background/coin/paper texture are 3D-scene renders (same-source rule). SFX cues archived, not used. -->
+<html data-width="1920" data-height="1080" data-fps="30">
+<head><meta charset="utf-8"><style>
+@font-face{ font-family:"BIZ UDPGothic"; src:url(assets/fonts/BIZUDPGothic-Regular.ttf) format("truetype"); font-weight:400; }
+@font-face{ font-family:"BIZ UDPGothic"; src:url(assets/fonts/BIZUDPGothic-Bold.ttf) format("truetype"); font-weight:700 900; }
+:root{
+  --bg:#efe6d0; --card:#f8f2e2; --ink:#2e2a26; --muted:#6b6156;
+  --green:#1f4d3a; --green-mid:#2e6b4f; --gold:#c29b3c; --gold-pale:#e7cc7e; --gold-deep:#9a7a2a;
+  --track:#e2d5b8; --warn:#a63d2f;
+  --sans:"BIZ UDPGothic","Noto Sans CJK JP",sans-serif;
+  --serif:"BIZ UDPGothic","Noto Sans CJK JP",sans-serif;
+}
+*{ box-sizing:border-box; }
+body{ background:var(--bg); color:var(--ink); font-family:var(--sans); margin:0; overflow:hidden; }
+.scene{ position:relative; width:1920px; height:1080px; }
+/* L0: the channel's one paper ground — a 3D render of the same ground, softened behind data */
+.bgimg{ position:absolute; inset:-30px; z-index:0; background:url(assets/ground-top.png) center/cover no-repeat;
+        filter:blur(6px) contrast(.93) brightness(1.0) saturate(1.02); }
+.veil{ position:absolute; inset:0; z-index:1; background:rgba(239,230,208,.10); }
+/* paper material for every card/strip: the 3D card texture under a light card tint */
+.paper{ background:linear-gradient(rgba(248,242,226,.62),rgba(248,242,226,.62)), url(assets/paper-tex.png);
+        background-size:auto, 512px 512px; border-radius:12px 15px 11px 16px / 15px 11px 16px 12px;
+        box-shadow:4px 5px 0 -1px #e6dbc0, 8px 10px 0 -2px #d9cbab, 7px 18px 30px rgba(90,55,20,.26),
+        inset 0 0 0 2px rgba(46,42,38,.20); }
+.kicker{ position:absolute; left:110px; top:64px; font-size:29px; font-weight:700; letter-spacing:.3em; color:var(--gold-deep); z-index:5; }
+.segtitle{ position:absolute; left:110px; top:106px; font-family:var(--serif); font-size:64px; font-weight:700; z-index:5; }
+.segtitle .g{ color:var(--gold-deep); }
+.headrule{ position:absolute; left:110px; top:216px; width:1700px; height:3px; background:var(--ink); opacity:.75; z-index:5;
+           transform-origin:left center; animation:growx .6s ease-out .3s both; }
+.stage{ position:absolute; left:110px; top:250px; width:1700px; height:600px; z-index:4; }
+/* subtitles (L5): bottom, always on top; gold emphasis */
+.sub{ position:absolute; left:50%; bottom:40px; transform:translateX(-50%); z-index:40;
+      font-size:48px; font-weight:700; line-height:1.25; text-align:center; color:#fbf6ea;
+      background:rgba(84,66,48,.55); padding:13px 30px 15px; border-radius:12px; max-width:1520px;
+      text-shadow:0 1px 3px rgba(43,36,28,.45); opacity:0; white-space:nowrap; }
+.sub .g{ color:#e9c979; }
+.sub .gr{ color:var(--green); }
+/* found real materials: scene photos in a paper frame; element cutouts as paper-ground stickers */
+.pframe{ position:absolute; border:6px solid #fbf7ec; border-radius:8px; overflow:hidden;
+         box-shadow:5px 6px 0 -1px #e6dbc0, 10px 20px 34px rgba(90,55,20,.32); }
+.pframe img{ width:100%; height:100%; object-fit:cover; display:block; }
+.pframe .credit{ position:absolute; right:10px; bottom:8px; font-size:20px; color:#fff8ea;
+                 background:rgba(43,36,28,.55); padding:3px 10px; border-radius:6px; }
+.cutout{ position:absolute; filter:drop-shadow(5px 10px 14px rgba(90,55,20,.35)); }
+/* mini blackboard (progress map, top-right corner) */
+.minibb{ position:absolute; right:56px; top:52px; width:308px; z-index:30; padding:14px 16px 10px; }
+.minibb .bbt{ font-size:21px; font-weight:700; color:var(--green); letter-spacing:.12em; margin-bottom:8px; }
+.minibb .bbt span{ color:var(--gold-deep); }
+.minibb .chip{ display:inline-block; font-size:19px; font-weight:700; padding:3px 9px; margin:0 5px 6px 0;
+               border:2px solid rgba(31,77,58,.35); color:rgba(46,42,38,.38); border-radius:4px; }
+.minibb .chip.on{ background:var(--green); border-color:var(--green); color:#f8f2e2; }
+.minibb .chip.on.gold{ background:var(--gold-deep); border-color:var(--gold-deep); }
+.minibb .chip.new{ animation:chippop .5s ease-out both; }
+/* persona watermark: small round avatar, bottom-right, same spot/size in every content segment.
+   Subtitles (z 40) stay on top; .sub max-width leaves the watermark corner free. */
+.wm{ position:absolute; right:48px; bottom:44px; width:120px; height:120px; border-radius:50%;
+     object-fit:cover; z-index:35; border:4px solid rgba(248,242,226,.92);
+     box-shadow:0 8px 20px rgba(90,55,20,.30); }
+/* generic content pieces */
+.card{ padding:34px 40px; }
+.card h3{ margin:0 0 10px; font-size:44px; font-weight:800; }
+.card p{ margin:0; font-size:31px; line-height:1.55; color:var(--ink); }
+.card p .g, .big .g{ color:var(--gold-deep); font-weight:800; }
+.big{ font-size:120px; font-weight:800; font-variant-numeric:tabular-nums; }
+table.pt{ border-collapse:collapse; width:100%; font-size:34px; }
+table.pt th, table.pt td{ padding:20px 26px; text-align:left; border-bottom:3px solid rgba(46,42,38,.16); }
+table.pt th{ color:var(--green); font-weight:800; white-space:nowrap; }
+table.pt td.n{ text-align:right; font-variant-numeric:tabular-nums; font-weight:700; white-space:nowrap; }
+ul.rows{ list-style:none; margin:0; padding:0; }
+ul.rows li{ font-size:38px; font-weight:700; padding:20px 28px; margin-bottom:16px; }
+ul.rows li small{ display:block; font-size:27px; font-weight:500; color:var(--muted); margin-top:4px; }
+.strip{ position:relative; height:170px; padding:0 40px; display:flex; align-items:center; }
+.strip .expr{ font-size:66px; font-weight:800; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.strip .expr .x{ color:var(--muted); font-size:48px; margin:0 10px; }
+.strip .track{ position:relative; flex:1; height:72px; margin-left:44px; background:var(--track); border-radius:4px; overflow:hidden; }
+.strip .bar{ position:absolute; inset:0; background:linear-gradient(180deg,#cfa844,#bd9433); transform-origin:left center; }
+.strip .bar.seg{ background:transparent; display:flex; gap:6px; }
+.strip .bar.seg i{ flex:1; background:linear-gradient(180deg,#cfa844,#bd9433); display:block; transform-origin:left center; }
+.eqtag{ font-size:50px; font-weight:800; color:var(--green); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.flowrow{ display:flex; align-items:center; gap:24px; }
+.fchip{ padding:22px 32px; font-size:38px; font-weight:800; text-align:center; }
+.fchip small{ display:block; font-size:24px; font-weight:500; color:var(--muted); margin-top:4px; }
+.conn{ flex:1; height:6px; background:linear-gradient(180deg,#dcbc6a,#c9a24a); position:relative; min-width:56px;
+       border-radius:3px; filter:drop-shadow(2px 3px 3px rgba(90,55,20,.35)); }
+.conn::after{ content:""; position:absolute; right:-2px; top:-9px; border-left:20px solid var(--gold);
+              border-top:11px solid transparent; border-bottom:11px solid transparent; }
+.mockwin{ padding:0; overflow:hidden; }
+.mockwin .bar2{ background:var(--green); color:#f8f2e2; padding:16px 28px; font-size:28px; font-weight:700;
+                display:flex; justify-content:space-between; }
+.mockwin .bar2 .dots{ color:var(--gold-pale); letter-spacing:.3em; }
+.mockwin .body{ padding:28px 34px; font-size:31px; line-height:1.6; }
+.mockwin .body .lbl{ font-size:24px; font-weight:700; color:var(--gold-deep); letter-spacing:.18em; }
+.check li::before{ content:"✓"; color:var(--green); font-weight:800; margin-right:14px; }
+.warnmark{ color:var(--warn); font-weight:800; }
+.foot{ position:absolute; left:110px; bottom:170px; font-size:28px; color:var(--muted); z-index:5; }
+@keyframes fadeup{ from{ opacity:0; transform:translateY(26px); } to{ opacity:1; transform:translateY(0); } }
+@keyframes growx{ from{ transform:scaleX(0); } to{ transform:scaleX(1); } }
+@keyframes popin{ from{ opacity:0; transform:scale(.92); } to{ opacity:1; transform:scale(1); } }
+@keyframes chippop{ 0%{ transform:scale(.6); } 60%{ transform:scale(1.18); } 100%{ transform:scale(1); } }
+
+@keyframes subseg080{ 0%,0.000%{opacity:0} 0.250%,14.595%{opacity:1} 14.795%,100%{opacity:0} }
+@keyframes subseg081{ 0%,14.795%{opacity:0} 15.045%,22.248%{opacity:1} 22.448%,100%{opacity:0} }
+@keyframes subseg082{ 0%,22.448%{opacity:0} 22.698%,31.434%{opacity:1} 31.634%,100%{opacity:0} }
+@keyframes subseg083{ 0%,31.634%{opacity:0} 31.884%,41.127%{opacity:1} 41.327%,100%{opacity:0} }
+@keyframes subseg084{ 0%,41.327%{opacity:0} 41.577%,52.353%{opacity:1} 52.553%,100%{opacity:0} }
+@keyframes subseg085{ 0%,52.553%{opacity:0} 52.803%,59.495%{opacity:1} 59.695%,100%{opacity:0} }
+@keyframes subseg086{ 0%,59.695%{opacity:0} 59.945%,68.677%{opacity:1} 68.877%,100%{opacity:0} }
+@keyframes subseg087{ 0%,68.877%{opacity:0} 69.127%,77.352%{opacity:1} 77.552%,100%{opacity:0} }
+@keyframes subseg088{ 0%,77.552%{opacity:0} 77.802%,88.574%{opacity:1} 88.774%,100%{opacity:0} }
+@keyframes subseg089{ 0%,88.774%{opacity:0} 89.024%,99.800%{opacity:1} 100.000%,100%{opacity:0} }
+</style></head>
+<body><main data-sequence>
+<section class="scene" data-duration="31.713">
+  <div class="bgimg"></div><div class="veil"></div>
+  <div class="kicker">EP001｜ステップ3の前に</div>
+  <div class="segtitle">初心者の失敗を3つ、先に潰す</div>
+  <div class="headrule"></div>
+  <div class="stage"><div style="display:flex;gap:30px"><div class="card paper" style="width:520px" style="animation:popin 0.55s ease-out 0.7s both"><div style="font-size:26px;font-weight:700;color:var(--warn);letter-spacing:.2em">失敗 1</div><h3>ジャンルの迷走</h3><p>今日は文章、明日は画像。<br>それでは実績も型も<br>積み上がらない</p></div><div class="card paper" style="width:520px" style="animation:popin 0.55s ease-out 9.0s both"><div style="font-size:26px;font-weight:700;color:var(--warn);letter-spacing:.2em">失敗 2</div><h3>AIの丸投げ</h3><p>詳しくは次のステップで。まず「やらない」と決めておく</p></div><div class="card paper" style="width:520px" style="animation:popin 0.55s ease-out 17.0s both"><div style="font-size:26px;font-weight:700;color:var(--warn);letter-spacing:.2em">失敗 3</div><h3>記録を付けない</h3><p>記録がないと、<br>30日後に何も検証できない</p></div></div><p style="font-size:34px;font-weight:700;margin-top:44px" style="animation:fadeup 0.5s ease-out 24.5s both">最初の1か月は、<span class="g">1つのジャンルに固定</span>します。</p></div>
+  <div class="minibb paper"><div class="bbt">まとめボード <span>5/9</span></div><span class="chip on" style="animation-delay:0.5s">1</span><span class="chip on" style="animation-delay:0.5s">2</span><span class="chip on" style="animation-delay:0.5s">3</span><span class="chip on" style="animation-delay:0.5s">4</span><span class="chip on new" style="animation-delay:0.5s">5</span><span class="chip" style="animation-delay:0.5s">6</span><span class="chip" style="animation-delay:0.5s">7</span><span class="chip" style="animation-delay:0.5s">8</span><span class="chip" style="animation-delay:0.5s">9</span></div>
+  
+  <img class="wm" src="assets/avatar.webp" alt="">
+  <div class="sub" style="animation:subseg080 31.713s linear both">ここで、初心者がやりがちな失敗を<span class="g">3つ</span>、先に潰しておきます。</div>
+<div class="sub" style="animation:subseg081 31.713s linear both"><span class="g">1つ</span>目は、ジャンルの迷走です。</div>
+<div class="sub" style="animation:subseg082 31.713s linear both">今日は文章、明日は画像、来週は動画。</div>
+<div class="sub" style="animation:subseg083 31.713s linear both">それでは、実績も型も積み上がりません。</div>
+<div class="sub" style="animation:subseg084 31.713s linear both">最初の<span class="g">1か月</span>は、<span class="g">1つ</span>のジャンルに固定します。</div>
+<div class="sub" style="animation:subseg085 31.713s linear both"><span class="g">2つ</span>目は、AIの丸投げです。</div>
+<div class="sub" style="animation:subseg086 31.713s linear both">これは次のステップで詳しく話します。</div>
+<div class="sub" style="animation:subseg087 31.713s linear both"><span class="g">3つ</span>目は、記録を付けないことです。</div>
+<div class="sub" style="animation:subseg088 31.713s linear both">記録がないと、<span class="g">30日</span>後に何も検証できません。</div>
+<div class="sub" style="animation:subseg089 31.713s linear both">頑張った記憶だけでは、改善はできないのです。</div>
+</section></main></body></html>
