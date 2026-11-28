@@ -17,6 +17,10 @@ jobs:
           python-version: '3.12'
       - name: Allow Chrome sandbox on ubuntu-24.04
         run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - name: Install CJK font (the scene prints Japanese text)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-noto-cjk
       - name: Install Playwright + Chromium
         run: |
           pip install playwright
@@ -52,6 +56,10 @@ jobs:
           python-version: '3.12'
       - name: Allow Chrome sandbox on ubuntu-24.04
         run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - name: Install CJK font (the scene prints Japanese text)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-noto-cjk
       - name: Install Playwright + Chromium
         run: |
           pip install playwright
